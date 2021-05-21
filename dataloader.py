@@ -25,22 +25,32 @@ class MnistBags(data_utils.Dataset):
             self.test_bags_list, self.test_labels_list = self._create_bags()
 
     def _create_bags(self):
+        from torchvision.datasets import MNIST
+        transform = transforms.Compose([transforms.ToTensor()])
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))])
+
+
+
         if self.train:
-            loader = data_utils.DataLoader(datasets.MNIST('../datasets',
-                                                          train=True,
-                                                          download=True,
-                                                          transform=transforms.Compose([
-                                                              transforms.ToTensor(),
-                                                              transforms.Normalize((0.1307,), (0.3081,))])),
+            train_data = datasets.MNIST('../data', train=True, download=True,
+                                        transform=transforms.Compose(
+                                            [transforms.ToTensor(),
+                                             transforms.Normalize((0.1307,), (0.308,)),
+                                             ]
+                                        ))
+            loader = data_utils.DataLoader(train_data,
                                            batch_size=self.num_in_train,
                                            shuffle=False)
         else:
-            loader = data_utils.DataLoader(datasets.MNIST('../datasets',
-                                                          train=False,
-                                                          download=True,
-                                                          transform=transforms.Compose([
-                                                              transforms.ToTensor(),
-                                                              transforms.Normalize((0.1307,), (0.3081,))])),
+            test_data = datasets.MNIST('../data', train=False, download=True,
+                                       transform=transforms.Compose(
+                                           [transforms.ToTensor(),
+                                            transforms.Normalize((0.1307,), (0.308,)),
+                                            ]
+                                       ))
+            loader = data_utils.DataLoader(test_data,
                                            batch_size=self.num_in_test,
                                            shuffle=False)
 

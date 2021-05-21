@@ -27,8 +27,16 @@ class MnistBags(data_utils.Dataset):
             self.test_bags_list, self.test_labels_list = self._form_bags()
 
     def _form_bags(self):
+        from torchvision.datasets import MNIST
+
+        transform = transforms.Compose([transforms.ToTensor()])
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))])
+        #train_data = MNIST(root='./datasets', train=True, download=True, transform=transform)
+        #val_data = MNIST(root='./datasets', train=False, download=True, transform=transform)
         if self.train:
-            train_loader = data_utils.DataLoader(datasets.MNIST('../datasets',
+            train_loader = data_utils.DataLoader(datasets.MNIST('../data',
                                                                 train=True,
                                                                 download=True,
                                                                 transform=transforms.Compose([
@@ -80,7 +88,7 @@ class MnistBags(data_utils.Dataset):
                     pass
 
         else:
-            test_loader = data_utils.DataLoader(datasets.MNIST('../datasets',
+            test_loader = data_utils.DataLoader(datasets.MNIST('../data',
                                                                train=False,
                                                                download=True,
                                                                transform=transforms.Compose([

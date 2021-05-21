@@ -45,6 +45,7 @@ if args.cuda:
 
 print('Load Train and Test Set')
 loader_kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+loader_kwargs = {'num_workers': 0, 'pin_memory': True} if args.cuda else {}
 
 train_loader = data_utils.DataLoader(MnistBags(target_number=args.target_number,
                                                mean_bag_length=args.mean_bag_length,
