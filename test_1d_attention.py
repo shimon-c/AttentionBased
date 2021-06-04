@@ -74,13 +74,13 @@ class MeanSoftMax(nn.Module):
         return y_hat
 
 class Net(nn.Module):
-    def __init__(self, siglen, nchans=1, nfilters=20, nhids=10,ncls=3, norm_val = None, **kwargs):
+    def __init__(self, siglen, nchans=1, nfilters=20, nhids=10,ncls=3, norm_val = None, res_flag=False,  **kwargs):
         super(Net,self).__init__(**kwargs)
         self.cuda_flag = torch.cuda.is_available()
         self.norm = NormLay(norm_val)
         stride = 2 if regress_flag  else 1
         self.conv0 = None
-        if stride > 1:
+        if stride > 1 or res_flag is False:
             self.conv1 = nn.Conv1d(in_channels=nchans, out_channels=nfilters,kernel_size=3, padding=1, stride=stride)
             self.conv2 = nn.Conv1d(in_channels=nfilters, out_channels=nfilters, kernel_size=3, padding=1, stride=stride)
         else:
