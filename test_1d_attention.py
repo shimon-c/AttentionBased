@@ -267,7 +267,7 @@ if __name__ == '__main__':
     else:
         norm_val = math.pi * 2
     siglen = 1000
-    net = Net(siglen,nhids=nhids,nfilters=5, ncls=1, norm_val=norm_val)
+    net = Net(siglen,nhids=nhids,nfilters=5, ncls=1, norm_val=norm_val,res_flag=True)
     data = SinusDataLoader(len=siglen, noise_factor=0.1)
     import weights_init
     net.apply(weights_init.weights_init_normal)
