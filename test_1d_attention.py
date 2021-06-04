@@ -79,8 +79,14 @@ class Net(nn.Module):
         self.cuda_flag = torch.cuda.is_available()
         self.norm = NormLay(norm_val)
         stride = 2 if regress_flag  else 1
-        self.conv1 = nn.Conv1d(in_channels=nchans, out_channels=nfilters,kernel_size=3, padding=1, stride=stride)
-        self.conv2 = nn.Conv1d(in_channels=nfilters, out_channels=nfilters, kernel_size=3, padding=1, stride=stride)
+        self.conv0 = None
+        if stride > 1:
+            self.conv1 = nn.Conv1d(in_channels=nchans, out_channels=nfilters,kernel_size=3, padding=1, stride=stride)
+            self.conv2 = nn.Conv1d(in_channels=nfilters, out_channels=nfilters, kernel_size=3, padding=1, stride=stride)
+        else:
+            self.conv0 = nn.Conv1d(in_channels=nchans, out_channels=nfilters, kernel_size=1)
+            self.conv1 = nn.Conv1d(in_channels=nfilters, out_channels=nfilters, kernel_size=3, padding=1, stride=stride)
+            self.conv2 = nn.Conv1d(in_channels=nfilters, out_channels=nfilters, kernel_size=3, padding=1, stride=stride)
         L = int(siglen/(stride*stride))
         if regress_flag:
             self.attention = nn.Sequential(
@@ -99,9 +105,14 @@ class Net(nn.Module):
             self.classifier = MeanSoftMax(ncls)
     def forward_MIL(self, x):
         xn = self.norm(x)
+        res = None
+        if self.conv0 is not None:
+            res = xn = self.conv0(xn)
         x1 = self.conv1(xn)
         x1 = F.relu(x1)
         x2 = self.conv2(x1)
+        if res is not None:
+            x2 = res + x2
         x2 = F.leaky_relu_(x2)
         #x2t = torch.transpose(x2,dim0=1, dim1=2)
         H = self.attention(x2)
