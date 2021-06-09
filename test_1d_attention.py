@@ -141,7 +141,7 @@ class Net(nn.Module):
         for iter in range(epochs):
             acc_loss = 0
             bid = 0
-            max_bid = 100
+            max_bid = len(data_loader)
             for X,Y in data_loader:
                 if self.cuda_flag:
                     X = X.cuda()
@@ -150,6 +150,8 @@ class Net(nn.Module):
                 opt.zero_grad()
                 if regress_flag:
                     y_hat = torch.squeeze(y_hat, dim=1)
+                else:
+                    y_hat = torch.unsqueeze(y_hat,dim=2)
                 loss = loss_func(y_hat, Y)
                 if wgt_decay>0:
                     L = len(list(self.parameters()))
@@ -191,17 +193,25 @@ class SinusDataLoader:
             batch_len = 2
         if batch_len > self.L:
             batch_len = self.L-batch_len-2
-        sid = random.randint(0, self.L - batch_len - 2)
-        X = self.data_x[sid:sid+batch_len]
-        Y = self.data_y[sid:sid+batch_len]
+
+
         if not regress_flag:
             #X = Y
             # target is next sample
-            Y = self.data_y[sid+batch_len]
+            batch_size = 64
+            X = np.zeros((batch_size, 1, batch_len), dtype=np.float32)
+            y_shape = (batch_size,1,1)
+            Y = np.zeros(y_shape, dtype=np.float32)
+            for k in range(batch_size):
+                sid = random.randint(0, self.L - batch_len - 2)
+                Xk = self.data_x[sid:sid + batch_len]
+                Yk = self.data_y[sid+batch_len]
+                X[k,0,] = Xk
+                Y[k,0,0] = Yk
             L = 1
             X = torch.tensor(X, dtype=torch.float32)
             Y = torch.tensor(Y, dtype=torch.float32)
-            noise = np.random.randn(L) * self.noise_factor * self.mag
+            noise = np.random.randn(*y_shape) * self.noise_factor * self.mag
             Y += noise
             return X,Y
         # Just to see what the problem is
@@ -221,13 +231,15 @@ class SinusDataLoader:
         return X,Y
     def __iter__(self):
         return self
+    def __len__(self):
+        return 100
     def __next__(self):
         batch_size = 10
         if regress_flag is not True:
             batch_size = 1
             X,Y = self.get_next()
-            X = torch.unsqueeze(X,0)
-            X = torch.unsqueeze(X, 0)
+            #X = torch.unsqueeze(X,0)
+            #X = torch.unsqueeze(X, 0)
             return X,Y
         L = len(self.data_y)
         ar = np.zeros((batch_size,1,L), dtype=np.float32)
@@ -273,7 +285,7 @@ if __name__ == '__main__':
     net.apply(weights_init.weights_init_normal)
     loss_func = torch.nn.MSELoss()
     loss_func = mse_loss
-    net.fit(data, epochs=2000,loss_func=loss_func, wgt_decay=0.0001)
+    net.fit(data, epochs=1000,loss_func=loss_func, wgt_decay=0.0001)
     summary(net)
 
 
